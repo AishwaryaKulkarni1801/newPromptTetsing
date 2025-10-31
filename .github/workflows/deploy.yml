@@ -1,9 +1,9 @@
 name: Deploy Angular App to GitHub Pages
 
 on:
-  # Trigger on push to master branch
+  # Trigger on push to main branch
   push:
-    branches: [ master ]
+    branches: [ main ]
   
   # Allow manual trigger from GitHub Actions tab
   workflow_dispatch:
@@ -43,11 +43,16 @@ jobs:
       
     - name: Check coverage threshold
       run: |
-        if npm run test -- --coverage --watchAll=false --silent | grep -q "Coverage threshold"; then
-          echo "❌ Coverage below threshold or tests failed"
+        # Extract coverage percentages and check if all are >= 80%
+        coverage_output=$(npm run test -- --coverage --watchAll=false --silent 2>&1)
+        echo "$coverage_output"
+        
+        # Check if any coverage threshold failures exist
+        if echo "$coverage_output" | grep -q "Coverage threshold.*not met"; then
+          echo "❌ Coverage below 80% or tests failed. Please fix issues before proceeding."
           exit 1
         else
-          echo "✅ All tests passed with adequate coverage"
+          echo "✅ All tests passed with adequate coverage (>=80%)"
         fi
         
     - name: Build Angular application
@@ -84,3 +89,9 @@ jobs:
           echo "🚀 Application deployed successfully!"
           echo "📱 Live URL: ${{ steps.deployment.outputs.page_url }}"
           echo "🎉 Your Angular app is now live on GitHub Pages!"
+          echo ""
+          echo "📋 Next Steps:"
+          echo "1. Go to your repository: https://github.com/AishwaryaKulkarni1801/newPromptTetsing"
+          echo "2. Navigate to Settings → Pages"
+          echo "3. Under Source, select 'GitHub Actions' if not already selected"
+          echo "4. Your app will be available at: ${{ steps.deployment.outputs.page_url }}"
